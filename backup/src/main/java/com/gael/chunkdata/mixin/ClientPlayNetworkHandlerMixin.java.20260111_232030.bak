@@ -3,7 +3,7 @@ package com.gael.chunkdata.mixin;
 import com.gael.chunkdata.ChunkDataStore;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.packet.s2c.play.ChunkDataS2CPacket;
 import net.minecraft.util.math.ChunkPos;
@@ -12,27 +12,23 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ClientPlayNetworkHandler.class)
+@Mixin(net.minecraft.client.network.ClientPlayNetworkHandler.class)
 public class ClientPlayNetworkHandlerMixin {
 
 	@Inject(method = "onChunkData", at = @At("HEAD"))
 	private void chunkdata_client$capture(ChunkDataS2CPacket packet, CallbackInfo ci) {
-		// IMPORTANT: Don't depend on MinecraftClient.world here.
-		// Use the handler's registry manager, which exists during packet handling.
-		ClientPlayNetworkHandler handler = (ClientPlayNetworkHandler) (Object) this;
+		MinecraftClient mc = MinecraftClient.getInstance();
+		if (mc.world == null) return;
 
 		ByteBuf raw = Unpooled.buffer();
 		try {
-			RegistryByteBuf buf = new RegistryByteBuf(raw, handler.getRegistryManager());
+			RegistryByteBuf buf = new RegistryByteBuf(raw, mc.world.getRegistryManager());
 
-			// Measure full packet payload using the packet's private write(...)
+			// Measure full packet payload by calling the packet's private write(...)
 			((ChunkDataS2CPacketInvoker) (Object) packet).chunkdata_client$write(buf);
 
 			long bytes = raw.readableBytes();
 			ChunkDataStore.put(ChunkPos.toLong(packet.getChunkX(), packet.getChunkZ()), bytes);
-		} catch (Throwable t) {
-			// If something goes wrong, still record the chunk so "tracked" increases
-			ChunkDataStore.put(ChunkPos.toLong(packet.getChunkX(), packet.getChunkZ()), 0L);
 		} finally {
 			raw.release();
 		}
