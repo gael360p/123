@@ -13,30 +13,22 @@ public class ChunkDataClientMod implements ClientModInitializer {
 	public void onInitializeClient() {
 		ChunkDataKeys.init();
 
-		// Client command tree (works in SP / some servers, but not guaranteed everywhere)
+		// Keep client commands (works in singleplayer / some servers)
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
 			ChunkDataCommands.register(dispatcher)
 		);
 
-		// 1) Intercept real commands (no leading slash in the string)
+		// Make /chunkdata work on ANY server by handling it client-side before it reaches the server.
+		// Command string has NO leading slash.
 		ClientSendMessageEvents.ALLOW_COMMAND.register(command -> {
-			if (ChunkDataLocalCommandRouter.shouldHandleNoSlash(command)) {
-				ChunkDataLocalCommandRouter.handleNoSlash(command);
+			if (command.equals("chunkdata") || command.startsWith("chunkdata ")) {
+				ChunkDataLocalCommandRouter.handle(command);
 				return false; // block sending to server
 			}
 			return true;
 		});
 
-		// 2) Intercept "/chunkdata ..." if it gets treated like chat on some servers
-		ClientSendMessageEvents.ALLOW_CHAT.register(message -> {
-			if (ChunkDataLocalCommandRouter.shouldHandleChatMessage(message)) {
-				ChunkDataLocalCommandRouter.handleChatMessage(message);
-				return false; // block sending to server
-			}
-			return true;
-		});
-
-		// Toggle heatmap with H (stays on until pressed again)
+		// Toggle heatmap with H
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player == null) return;
 			while (ChunkDataKeys.SHOW_HEATMAP.wasPressed()) {
