@@ -66,49 +66,55 @@ public final class ChunkDataLocalCommandRouter {
 
 			Text t = Text.literal("Green-only mode " + (Chun
 
-set -e
+git checkout -b fix/remove-shellscript-and-add-commands git rm -f src/main/java/com/gael/chunkdata/ChunkDataLocalCommandRouter.java cat > src/main/java/com/gael/chunkdata/ChunkDataCommands.java <<'EOF' package com.gael.chunkdata;
 
-echo "== Pull latest =="
-git pull
+import com.mojang.brigadier.CommandDispatcher; import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource; import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 
-echo "== Make folders =="
-mkdir -p src/main/java/com/gael/chunkdata
-mkdir -p src/main/java/com/gael/chunkdata/mixin
+/**
 
-echo "== Update ChunkDataClientMod.java (adds client command interception) =="
-cat > src/main/java/com/gael/chunkdata/ChunkDataClientMod.java <<'EOF'
+Minimal client command registration so ChunkDataClientMod can compile.
+
+Extend with real behavior as needed. */ public final class ChunkDataCommands { private ChunkDataCommands() {}
+
+public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) { dispatcher.register( literal("chunkdata") .executes(ctx -> { // Client-side behavior can be added here if desired. return 1; }) ); } } EOF
+
+git add src/main/java/com/gael/chunkdata/ChunkDataCommands.java git commit -m "Remove accidental shell script in Java sources; add ChunkDataCommands to register client commands" git push --set-upstream origin HEAD
+git checkout -b fix/remove-shellscript-and-add-commands git rm -f src/main/java/com/gael/chunkdata/ChunkDataLocalCommandRouter.java cat > src/main/java/com/gael/chunkdata/ChunkDataCommands.java <<'EOF' package com.gael.chunkdata;
+
+import com.mojang.brigadier.CommandDispatcher; import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource; import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
+
+/**
+
+Minimal client command registration so ChunkDataClientMod can compile.
+
+Extend with real behavior as needed. */ public final class ChunkDataCommands { private ChunkDataCommands() {}
+
+public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) { dispatcher.register( literal("chunkdata") .executes(ctx -> { // Client-side behavior can be added here if desired. return 1; }) ); } } EOF
+
+git add src/main/java/com/gael/chunkdata/ChunkDataCommands.java git commit -m "Remove accidental shell script in Java sources; add ChunkDataCommands to register client commands" git push --set-upstream origin HEAD
+git checkout -b fix/remove-shellscript-and-add-commands && \
+git rm -f src/main/java/com/gael/chunkdata/ChunkDataLocalCommandRouter.java || true && \
+cat > src/main/java/com/gael/chunkdata/ChunkDataCommands.java <<'EOF'
 package com.gael.chunkdata;
 
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
+import com.mojang.brigadier.CommandDispatcher;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 
-public class ChunkDataClientMod implements ClientModInitializer {
-	@Override
-	public void onInitializeClient() {
-		ChunkDataKeys.init();
+/**
+ * Minimal client command registration so ChunkDataClientMod can compile.
+ * Extend with real behavior as needed.
+ */
+public final class ChunkDataCommands {
+    private ChunkDataCommands() {}
 
-		// Keep existing client commands (works in singleplayer / some servers)
-		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
-			ChunkDataCommands.register(dispatcher)
-		);
-
-		// Make /chunkdata work on ANY server by handling it client-side before it reaches the server.
-		// The string has NO leading slash. Example: "chunkdata top 10"
-		ClientSendMessageEvents.ALLOW_COMMAND.register(command -> {
-			if (command.equals("chunkdata") || command.startsWith("chunkdata ")) {
-				ChunkDataLocalCommandRouter.handle(command);
-				return false; // block sending to server
-			}
-			return true;
-		});
-
-		HudRenderCallback.EVENT.register((drawContext, tickCounter) ->
-			ChunkHeatmapOverlay.render(drawContext)
-		);
-
-		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ChunkDataStore.clear());
-	}
+    public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
+        dispatcher.register(
+            literal("chunkdata")
+                .executes(ctx -> {
+                    // Client-side behavior can be added here if desired.
+                    return 1;
+                })
+        );
+    }
 }
