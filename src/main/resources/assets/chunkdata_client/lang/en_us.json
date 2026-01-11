@@ -1,4 +1,4 @@
 {
   "category.chunkdata_client": "ChunkData Client",
-  "key.chunkdata_client.show_heatmap": "Show ChunkData Heatmap (hold H)"
+  "key.chunkdata_client.show_heatmap": "Toggle ChunkData Heatmap"
 }

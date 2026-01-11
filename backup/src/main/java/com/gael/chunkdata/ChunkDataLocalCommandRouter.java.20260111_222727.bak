@@ -41,7 +41,7 @@ public final class ChunkDataLocalCommandRouter {
     private static void heatmap(String[] parts) {
         if (parts.length == 2) {
             msg("Heatmap is " + (ChunkDataConfig.HEATMAP_ENABLED ? "ON" : "OFF") +
-                " (toggle H). Green-only is " + (ChunkDataConfig.ABNORMAL_ONLY_MODE ? "ON" : "OFF") + ".");
+                " (hold H). Green-only is " + (ChunkDataConfig.ABNORMAL_ONLY_MODE ? "ON" : "OFF") + ".");
             return;
         }
 
@@ -50,7 +50,7 @@ public final class ChunkDataLocalCommandRouter {
         if (a.equals("on") || a.equals("off") || a.equals("toggle")) {
             if (a.equals("toggle")) ChunkDataConfig.HEATMAP_ENABLED = !ChunkDataConfig.HEATMAP_ENABLED;
             else ChunkDataConfig.HEATMAP_ENABLED = a.equals("on");
-            msg("Heatmap " + (ChunkDataConfig.HEATMAP_ENABLED ? "enabled" : "disabled") + " (toggle H).");
+            msg("Heatmap " + (ChunkDataConfig.HEATMAP_ENABLED ? "enabled" : "disabled") + " (hold H).");
             return;
         }
 

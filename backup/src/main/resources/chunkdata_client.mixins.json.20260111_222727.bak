@@ -1,0 +1,10 @@
+{
+  "required": true,
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "com.gael.chunkdata.mixin.ClientPlayNetworkHandlerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -2,42 +2,28 @@ package com.gael.chunkdata;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.text.Text;
+import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
 
 public class ChunkDataClientMod implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		ChunkDataKeys.init();
 
-		// Keep client commands (works in singleplayer / some servers)
+		// Keep existing client commands (works in singleplayer / some servers)
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
 			ChunkDataCommands.register(dispatcher)
 		);
 
 		// Make /chunkdata work on ANY server by handling it client-side before it reaches the server.
-		// Command string has NO leading slash.
+		// The string has NO leading slash. Example: "chunkdata top 10"
 		ClientSendMessageEvents.ALLOW_COMMAND.register(command -> {
 			if (command.equals("chunkdata") || command.startsWith("chunkdata ")) {
 				ChunkDataLocalCommandRouter.handle(command);
 				return false; // block sending to server
 			}
 			return true;
-		});
-
-		// Toggle heatmap with H
-		ClientTickEvents.END_CLIENT_TICK.register(client -> {
-			if (client.player == null) return;
-			while (ChunkDataKeys.SHOW_HEATMAP.wasPressed()) {
-				ChunkDataConfig.HEATMAP_TOGGLED = !ChunkDataConfig.HEATMAP_TOGGLED;
-				client.player.sendMessage(
-					Text.literal("Heatmap " + (ChunkDataConfig.HEATMAP_TOGGLED ? "ON" : "OFF")),
-					false
-				);
-			}
 		});
 
 		HudRenderCallback.EVENT.register((drawContext, tickCounter) ->
