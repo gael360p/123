@@ -1,1 +1,10 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        // Needed so Gradle can resolve fabric-loom plugin (SNAPSHOTs/live builds)
+        maven { url = uri("https://maven.fabricmc.net/") }
+    }
+}
+
 rootProject.name = "chunkdata-client"
