@@ -48,6 +48,10 @@ public final class ChunkDataStore {
 		return String.format(java.util.Locale.ROOT, "%.2fG", gb);
 	}
 
+	public static int size() {
+		return BYTES_BY_CHUNK.size();
+	}
+
 	public static int packedX(long pos) { return ChunkPos.getPackedX(pos); }
 	public static int packedZ(long pos) { return ChunkPos.getPackedZ(pos); }
 }
