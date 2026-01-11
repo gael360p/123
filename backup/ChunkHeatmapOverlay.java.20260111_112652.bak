@@ -2,7 +2,6 @@ package com.gael.chunkdata;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.ChunkPos;
 
 public final class ChunkHeatmapOverlay {
@@ -21,35 +20,16 @@ public final class ChunkHeatmapOverlay {
 		int margin = ChunkDataConfig.MARGIN;
 
 		int cells = (r * 2) + 1;
-		int gridWidth = cells * cell;
-		int gridHeight = cells * cell;
+		int width = cells * cell;
+		int height = cells * cell;
 
-		int headerH = 12;                 // space for "tracked=..."
-		int panelWidth = gridWidth;
-		int panelHeight = gridHeight + headerH;
-
-		// TOP-LEFT placement
-		int x0 = margin;
+		int screenW = mc.getWindow().getScaledWidth();
+		int x0 = screenW - margin - width;
 		int y0 = margin;
 
-		// Grid starts below header
-		int gridX0 = x0;
-		int gridY0 = y0 + headerH;
-
 		int panelAlpha = ChunkDataConfig.ABNORMAL_ONLY_MODE ? 0x18 : ChunkDataConfig.PANEL_ALPHA;
-
-		// Panel background + border
-		ctx.fill(x0 - 2, y0 - 2, x0 + panelWidth + 2, y0 + panelHeight + 2, argb(panelAlpha, 0, 0, 0));
-		ctx.drawBorder(x0 - 2, y0 - 2, panelWidth + 4, panelHeight + 4, argb(0x50, 255, 255, 255));
-
-		// Status line INSIDE panel (always visible while holding H)
-		ctx.drawTextWithShadow(
-			mc.textRenderer,
-			Text.literal("tracked=" + ChunkDataStore.size() + "  (hold H)"),
-			x0 + 3,
-			y0 + 2,
-			0xFFFFFFFF
-		);
+		ctx.fill(x0 - 2, y0 - 2, x0 + width + 2, y0 + height + 2, argb(panelAlpha, 0, 0, 0));
+		ctx.drawBorder(x0 - 2, y0 - 2, width + 4, height + 4, argb(0x50, 255, 255, 255));
 
 		var stats = ChunkDataAnalyzer.statsForArea(center, r);
 
@@ -81,20 +61,17 @@ public final class ChunkHeatmapOverlay {
 
 				boolean abnormal = ChunkDataAnalyzer.isAbnormal(bytes, stats);
 
-				int px = gridX0 + (dx + r) * cell;
-				int py = gridY0 + (dz + r) * cell;
+				int px = x0 + (dx + r) * cell;
+				int py = y0 + (dz + r) * cell;
 
 				if (bytes < 0) {
 					if (!ChunkDataConfig.ABNORMAL_ONLY_MODE) {
-						// Unknown chunks: visible grid so you know it's working
-						ctx.fill(px, py, px + cell, py + cell, argb(0x55, 35, 35, 35));
-						ctx.drawBorder(px, py, cell, cell, argb(0x20, 255, 255, 255));
+						ctx.fill(px, py, px + cell, py + cell, argb(0x20, 20, 20, 20));
 					}
 					continue;
 				}
 
 				if (abnormal) {
-					// ABNORMAL = green
 					ctx.fill(px, py, px + cell, py + cell, argb(0x55, 0, 255, 0));
 					ctx.drawBorder(px, py, cell, cell, argb(0xFF, 0, 255, 0));
 					continue;
@@ -111,9 +88,8 @@ public final class ChunkHeatmapOverlay {
 			}
 		}
 
-		// Player's current chunk border
-		int pcx = gridX0 + r * cell;
-		int pcy = gridY0 + r * cell;
+		int pcx = x0 + r * cell;
+		int pcy = y0 + r * cell;
 		ctx.drawBorder(pcx, pcy, cell, cell, argb(0xFF, 255, 255, 255));
 	}
 
