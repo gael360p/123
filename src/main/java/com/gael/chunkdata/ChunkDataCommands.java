@@ -15,7 +15,8 @@ public final class ChunkDataCommands {
         dispatcher.register(
             literal("chunkdata")
                 .executes(ctx -> {
-                    // Client-side behavior can be added here if desired.
+                    // Example: forward to the local router to run a help command:
+                    // ChunkDataLocalCommandRouter.handle("chunkdata help");
                     return 1;
                 })
         );
