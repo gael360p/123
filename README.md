@@ -4,8 +4,7 @@ Client-side Fabric mod that estimates “chunk stored data” by measuring the *
 Works on servers (client-only).
 
 ## Controls
-- Hold **H** to show the heatmap (top-left
-)
+- Hold **H** to show the heatmap (top-left)
 
 ## Commands
 - `/chunkdata heatmap on|off|toggle`
