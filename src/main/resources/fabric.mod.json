@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "chunkdata_client",
+  "version": "${version}",
+  "name": "ChunkData Client Profiler",
+  "description": "Client-side chunk packet size heatmap + abnormal chunk detection (hold H).",
+  "authors": ["gael360p"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.gael.chunkdata.ChunkDataClientMod"]
+  },
+  "mixins": [
+    "chunkdata_client.mixins.json"
+  ],
+  "depends": {
+    "minecraft": "1.21.4",
+    "fabricloader": ">=0.16.9",
+    "fabric": "*"
+  }
+}
