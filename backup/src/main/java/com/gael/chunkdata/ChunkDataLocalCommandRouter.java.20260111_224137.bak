@@ -10,23 +10,24 @@ public final class ChunkDataLocalCommandRouter {
 
 	// --- Intercept helpers ---
 
+	// For ALLOW_COMMAND: string has NO leading slash.
 	public static boolean shouldHandleNoSlash(String commandNoSlash) {
 		String c = commandNoSlash.trim().toLowerCase();
 		return c.equals("chunkdata") || c.startsWith("chunkdata ")
-			|| c.equals("chuckdata") || c.startsWith("chuckdata ")
-			|| c.equals("chunckdata") || c.startsWith("chunckdata ");
+			|| c.equals("chuckdata") || c.startsWith("chuckdata "); // typo alias
 	}
 
 	public static void handleNoSlash(String commandNoSlash) {
+		// Normalize typo
 		String normalized = normalizeLeadingToken(commandNoSlash.trim());
 		handleTokens(normalized.split("\\s+"));
 	}
 
+	// For ALLOW_CHAT: message may start with "/"
 	public static boolean shouldHandleChatMessage(String msg) {
 		String m = msg.trim().toLowerCase();
 		return m.equals("/chunkdata") || m.startsWith("/chunkdata ")
-			|| m.equals("/chuckdata") || m.startsWith("/chuckdata ")
-			|| m.equals("/chunckdata") || m.startsWith("/chunckdata ");
+			|| m.equals("/chuckdata") || m.startsWith("/chuckdata ");
 	}
 
 	public static void handleChatMessage(String msg) {
@@ -37,10 +38,9 @@ public final class ChunkDataLocalCommandRouter {
 	}
 
 	private static String normalizeLeadingToken(String raw) {
-		String low = raw.toLowerCase();
-		if (low.equals("chuckdata") || low.equals("chunckdata")) return "chunkdata";
-		if (low.startsWith("chuckdata ")) return "chunkdata " + raw.substring("chuckdata ".length());
-		if (low.startsWith("chunckdata ")) return "chunkdata " + raw.substring("chunckdata ".length());
+		// Convert "chuckdata" -> "chunkdata"
+		if (raw.equalsIgnoreCase("chuckdata")) return "chunkdata";
+		if (raw.toLowerCase().startsWith("chuckdata ")) return "chunkdata " + raw.substring("chuckdata ".length());
 		return raw;
 	}
 
@@ -49,6 +49,7 @@ public final class ChunkDataLocalCommandRouter {
 	private static void handleTokens(String[] parts) {
 		if (parts.length == 0) return;
 
+		// parts[0] should be "chunkdata"
 		if (parts.length == 1) {
 			help();
 			return;
@@ -78,7 +79,7 @@ public final class ChunkDataLocalCommandRouter {
 	private static void heatmap(String[] parts) {
 		if (parts.length == 2) {
 			msg("Heatmap is " + (ChunkDataConfig.HEATMAP_ENABLED ? "ON" : "OFF") +
-				". Press H to toggle overlay. Green-only is " + (ChunkDataConfig.ABNORMAL_ONLY_MODE ? "ON" : "OFF") + ".");
+				". Toggle display with H. Green-only is " + (ChunkDataConfig.ABNORMAL_ONLY_MODE ? "ON" : "OFF") + ".");
 			return;
 		}
 
@@ -87,10 +88,11 @@ public final class ChunkDataLocalCommandRouter {
 		if (a.equals("on") || a.equals("off") || a.equals("toggle")) {
 			if (a.equals("toggle")) ChunkDataConfig.HEATMAP_ENABLED = !ChunkDataConfig.HEATMAP_ENABLED;
 			else ChunkDataConfig.HEATMAP_ENABLED = a.equals("on");
-			msg("Heatmap " + (ChunkDataConfig.HEATMAP_ENABLED ? "enabled" : "disabled") + ". Press H to toggle overlay.");
+			msg("Heatmap " + (ChunkDataConfig.HEATMAP_ENABLED ? "enabled" : "disabled") + ". Toggle display with H.");
 			return;
 		}
 
+		// /chunkdata heatmap abnormalonly on|off|toggle
 		if (a.equals("abnormalonly")) {
 			if (parts.length < 4) {
 				msg("Usage: /chunkdata heatmap abnormalonly on|off|toggle");
@@ -121,20 +123,10 @@ public final class ChunkDataLocalCommandRouter {
 	private static void top(int count) {
 		var mc = MinecraftClient.getInstance();
 		ChunkPos center = (mc.player != null) ? mc.player.getChunkPos() : new ChunkPos(0, 0);
+		var stats = ChunkDataAnalyzer.statsForArea(center, ChunkDataConfig.HEATMAP_RADIUS);
 
-		// Prefer area stats, but if no local samples yet, fall back to global stats
-		var areaStats = ChunkDataAnalyzer.statsForArea(center, ChunkDataConfig.HEATMAP_RADIUS);
-		var stats = (areaStats.samples() > 0) ? areaStats : ChunkDataAnalyzer.statsAll();
-
-		if (ChunkDataStore.size() == 0) {
-			msg("No tracked chunks yet. Move around / re-log so the server sends chunk data.");
-			return;
-		}
-
-		msg("Top " + count + " tracked chunks. " +
-			(stats.samples() >= 12 ? ("ABNORMAL = > mean + " + ChunkDataConfig.STD_MULT + "σ") : "ABNORMAL needs more samples") +
-			" (samples=" + stats.samples() + ", tracked=" + ChunkDataStore.size() + ")"
-		);
+		msg("Top " + count + " tracked chunks. ABNORMAL = > mean + " + ChunkDataConfig.STD_MULT +
+			"σ (samples=" + stats.samples() + ")");
 
 		var rows = ChunkDataStore.top(count);
 		for (int i = 0; i < rows.size(); i++) {

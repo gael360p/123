@@ -7,7 +7,6 @@ import net.minecraft.util.math.ChunkPos;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.LongConsumer;
 
 public final class ChunkDataStore {
 	private static final Long2LongOpenHashMap BYTES_BY_CHUNK = new Long2LongOpenHashMap();
@@ -24,16 +23,6 @@ public final class ChunkDataStore {
 
 	public static void clear() {
 		BYTES_BY_CHUNK.clear();
-	}
-
-	public static int size() {
-		return BYTES_BY_CHUNK.size();
-	}
-
-	public static void forEachBytes(LongConsumer consumer) {
-		for (Long2LongMap.Entry e : BYTES_BY_CHUNK.long2LongEntrySet()) {
-			consumer.accept(e.getLongValue());
-		}
 	}
 
 	public record Row(long pos, long bytes) {}
@@ -57,6 +46,10 @@ public final class ChunkDataStore {
 		if (mb < 1024) return String.format(java.util.Locale.ROOT, "%.1fM", mb);
 		double gb = mb / 1024.0;
 		return String.format(java.util.Locale.ROOT, "%.2fG", gb);
+	}
+
+	public static int size() {
+		return BYTES_BY_CHUNK.size();
 	}
 
 	public static int packedX(long pos) { return ChunkPos.getPackedX(pos); }

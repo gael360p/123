@@ -19,16 +19,7 @@ public final class ChunkDataAnalyzer {
 				if (b >= 0) values.add(b);
 			}
 		}
-		return statsFromList(values);
-	}
 
-	public static Stats statsAll() {
-		List<Long> values = new ArrayList<>(Math.max(16, ChunkDataStore.size()));
-		ChunkDataStore.forEachBytes(values::add);
-		return statsFromList(values);
-	}
-
-	private static Stats statsFromList(List<Long> values) {
 		int n = values.size();
 		if (n == 0) return new Stats(0, 0, Double.POSITIVE_INFINITY, 0);
 
@@ -45,6 +36,7 @@ public final class ChunkDataAnalyzer {
 
 		double std = Math.sqrt(var);
 		double threshold = mean + (ChunkDataConfig.STD_MULT * std);
+
 		return new Stats(mean, std, threshold, n);
 	}
 
