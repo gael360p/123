@@ -4,7 +4,7 @@ public final class ChunkDataConfig {
     private ChunkDataConfig() {}
 
     // master enable
-    public static final boolean HEATMAP_ENABLED = true;
+    public static boolean HEATMAP_ENABLED = true;
 
     // toggled by H and by command
     public static boolean HEATMAP_TOGGLED = false;
