@@ -1,44 +1,29 @@
 package com.gael.chunkdata;
 
-import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2LongMap;
-import net.minecraft.util.math.ChunkPos;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
+import java.util.function.Consumer;
 
 public final class ChunkDataStore {
-  private static final Long2LongOpenHashMap BYTES_BY_CHUNK = new Long2LongOpenHashMap();
+    private static final Long2LongOpenHashMap BYTES_BY_CHUNK = new Long2LongOpenHashMap();
 
-  private ChunkDataStore() {}
+    private ChunkDataStore() {}
 
-  public static void put(long chunkPosLong, long bytes) { BYTES_BY_CHUNK.put(chunkPosLong, bytes); }
-  public static long get(long chunkPosLong) { return BYTES_BY_CHUNK.getOrDefault(chunkPosLong, -1); }
-  public static int size() { return BYTES_BY_CHUNK.size(); }
-  public static void clear() { BYTES_BY_CHUNK.clear(); }
+    // Existing methods
+    public static void put(long chunkPos, long bytes) {
+        BYTES_BY_CHUNK.put(chunkPos, bytes);
+    }
 
-  public record Row(long pos, long bytes) {}
+    public static long get(long chunkPos) {
+        return BYTES_BY_CHUNK.getOrDefault(chunkPos, -1);
+    }
 
-  public static List<Row> top(int count) {
-    List<Row> rows = new ArrayList<>(BYTES_BY_CHUNK.size());
-    for (Long2LongMap.Entry e : BYTES_BY_CHUNK.long2LongEntrySet()) rows.add(new Row(e.getLongKey(), e.getLongValue()));
-    rows.sort(Comparator.comparingLong(Row::bytes).reversed());
-    if (rows.size() > count) return rows.subList(0, count);
-    return rows;
-  }
+    public static int size() {
+        return BYTES_BY_CHUNK.size();
+    }
 
-  public static String formatBytes(long bytes) {
-    if (bytes < 0) return "unknown";
-    if (bytes < 1024) return Long.toString(bytes);
-    double kb = bytes / 1024.0;
-    if (kb < 1024) return String.format(java.util.Locale.ROOT, "%.1fK", kb);
-    double mb = kb / 1024.0;
-    if (mb < 1024) return String.format(java.util.Locale.ROOT, "%.1fM", mb);
-    double gb = mb / 1024.0;
-    return String.format(java.util.Locale.ROOT, "%.2fG", gb);
-  }
-
-  public static int packedX(long pos) { return ChunkPos.getPackedX(pos); }
-  public static int packedZ(long pos) { return ChunkPos.getPackedZ(pos); }
+    // Add the missing method
+    public static void forEachBytes(Consumer<Long> action) {
+        BYTES_BY_CHUNK.long2LongEntrySet().forEach(entry -> action.accept(entry.getLongValue()));
+    }
 }
