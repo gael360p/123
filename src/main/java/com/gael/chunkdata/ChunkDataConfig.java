@@ -1,11 +1,11 @@
 package com.gael.chunkdata;
 
 public final class ChunkDataConfig {
-    private ChunkDataConfig() {}
+  private ChunkDataConfig() {}
 
-    public static final boolean HEATMAP_ENABLED = true;
-    public static boolean HEATMAP_TOGGLED = false;
+  // master enable
+  public static boolean HEATMAP_ENABLED = true;
 
-    // Adding the missing constant
-    public static final double STD_MULT = 1.5; // Adjust the multiplier value as needed
+  // toggled by H and by command
+  public static boolean HEATMAP_TOGGLED = false;
 }
