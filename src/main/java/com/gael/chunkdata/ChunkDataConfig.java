@@ -3,22 +3,6 @@ package com.gael.chunkdata;
 public final class ChunkDataConfig {
 	private ChunkDataConfig() {}
 
-	// Master enable/disable (commands can turn this off)
 	public static boolean HEATMAP_ENABLED = true;
-
-	// Toggled by pressing H (stays on until pressed again)
 	public static boolean HEATMAP_TOGGLED = false;
-
-	// If true, ONLY abnormal chunks are drawn (green-only mode)
-	public static boolean ABNORMAL_ONLY_MODE = false;
-
-	public static int HEATMAP_RADIUS = 6;
-	public static int CELL_SIZE = 5;
-	public static int MARGIN = 8;
-
-	// Abnormal threshold: mean + (STD_MULT * stddev) in displayed window
-	public static double STD_MULT = 2.0;
-
-	// Panel alpha
-	public static int PANEL_ALPHA = 0x40;
 }

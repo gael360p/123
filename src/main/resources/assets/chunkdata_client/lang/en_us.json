@@ -1,4 +1,6 @@
 {
   "category.chunkdata_client": "ChunkData Client",
-  "key.chunkdata_client.show_heatmap": "Toggle ChunkData Heatmap"
+  "key.chunkdata_client.toggle_heatmap": "Toggle ChunkData Heatmap",
+  "key.chunkdata_client.toggle_debug": "Toggle ChunkData Debug Overlay",
+  "key.chunkdata_client.dump_debug": "Dump ChunkData Debug"
 }

@@ -2,169 +2,71 @@ package com.gael.chunkdata;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.ChunkPos;
 
 public final class ChunkDataLocalCommandRouter {
 	private ChunkDataLocalCommandRouter() {}
 
-	// --- Intercept helpers ---
-
-	public static boolean shouldHandleNoSlash(String commandNoSlash) {
-		String c = commandNoSlash.trim().toLowerCase();
+	public static boolean isOurCommand(String cmdNoSlash) {
+		String c = cmdNoSlash.trim().toLowerCase();
 		return c.equals("chunkdata") || c.startsWith("chunkdata ")
 			|| c.equals("chuckdata") || c.startsWith("chuckdata ")
 			|| c.equals("chunckdata") || c.startsWith("chunckdata ");
 	}
 
-	public static void handleNoSlash(String commandNoSlash) {
-		String normalized = normalizeLeadingToken(commandNoSlash.trim());
-		handleTokens(normalized.split("\\s+"));
-	}
+	public static void run(String cmdNoSlash) {
+		String[] p = cmdNoSlash.trim().split("\\s+");
+		if (p.length == 0) return;
+		if (p.length == 1) { help(); return; }
 
-	public static boolean shouldHandleChatMessage(String msg) {
-		String m = msg.trim().toLowerCase();
-		return m.equals("/chunkdata") || m.startsWith("/chunkdata ")
-			|| m.equals("/chuckdata") || m.startsWith("/chuckdata ")
-			|| m.equals("/chunckdata") || m.startsWith("/chunckdata ");
-	}
-
-	public static void handleChatMessage(String msg) {
-		String m = msg.trim();
-		if (m.startsWith("/")) m = m.substring(1);
-		m = normalizeLeadingToken(m);
-		handleTokens(m.split("\\s+"));
-	}
-
-	private static String normalizeLeadingToken(String raw) {
-		String low = raw.toLowerCase();
-		if (low.equals("chuckdata") || low.equals("chunckdata")) return "chunkdata";
-		if (low.startsWith("chuckdata ")) return "chunkdata " + raw.substring("chuckdata ".length());
-		if (low.startsWith("chunckdata ")) return "chunkdata " + raw.substring("chunckdata ".length());
-		return raw;
-	}
-
-	// --- Actual command handling ---
-
-	private static void handleTokens(String[] parts) {
-		if (parts.length == 0) return;
-
-		if (parts.length == 1) {
-			help();
-			return;
-		}
-
-		String sub = parts[1].toLowerCase();
-
+		String sub = p[1].toLowerCase();
 		switch (sub) {
-			case "here" -> here();
-			case "top" -> {
-				int count = 10;
-				if (parts.length >= 3) {
-					try { count = Math.max(1, Math.min(50, Integer.parseInt(parts[2]))); }
-					catch (NumberFormatException ignored) {}
-				}
-				top(count);
-			}
-			case "clear" -> {
-				ChunkDataStore.clear();
-				msg("Cleared stored results.");
-			}
-			case "heatmap" -> heatmap(parts);
+			case "top" -> top(parseInt(p, 2, 10));
+			case "clear" -> { ChunkDataStore.clear(); msg("Cleared tracked chunks."); }
+			case "debug" -> debug(p);
 			default -> help();
 		}
 	}
 
-	private static void heatmap(String[] parts) {
-		if (parts.length == 2) {
-			msg("Heatmap is " + (ChunkDataConfig.HEATMAP_ENABLED ? "ON" : "OFF") +
-				". Press H to toggle overlay. Green-only is " + (ChunkDataConfig.ABNORMAL_ONLY_MODE ? "ON" : "OFF") + ".");
+	private static void debug(String[] p) {
+		String a = (p.length >= 3) ? p[2].toLowerCase() : "toggle";
+		if (a.equals("on")) ChunkDataDebugState.DEBUG_ENABLED = true;
+		else if (a.equals("off")) ChunkDataDebugState.DEBUG_ENABLED = false;
+		else if (a.equals("dump")) {
+			msg("trackedChunks=" + ChunkDataStore.size());
+			msg("ctorPackets=" + ChunkDataDebugState.ctorPackets + " handlerPackets=" + ChunkDataDebugState.handlerPackets + " measuredWrite=" + ChunkDataDebugState.measuredWritePackets);
+			msg("lastHook=" + ChunkDataDebugState.lastHook + " lastChunk=(" + ChunkDataDebugState.lastChunkX + "," + ChunkDataDebugState.lastChunkZ + ") lastBytes=" + ChunkDataStore.formatBytes(ChunkDataDebugState.lastBytes) + "B");
+			if (!ChunkDataDebugState.lastError.isEmpty()) msg("error=" + ChunkDataDebugState.lastError);
 			return;
+		} else {
+			ChunkDataDebugState.DEBUG_ENABLED = !ChunkDataDebugState.DEBUG_ENABLED;
 		}
-
-		String a = parts[2].toLowerCase();
-
-		if (a.equals("on") || a.equals("off") || a.equals("toggle")) {
-			if (a.equals("toggle")) ChunkDataConfig.HEATMAP_ENABLED = !ChunkDataConfig.HEATMAP_ENABLED;
-			else ChunkDataConfig.HEATMAP_ENABLED = a.equals("on");
-			msg("Heatmap " + (ChunkDataConfig.HEATMAP_ENABLED ? "enabled" : "disabled") + ". Press H to toggle overlay.");
-			return;
-		}
-
-		if (a.equals("abnormalonly")) {
-			if (parts.length < 4) {
-				msg("Usage: /chunkdata heatmap abnormalonly on|off|toggle");
-				return;
-			}
-			String v = parts[3].toLowerCase();
-			if (v.equals("toggle")) ChunkDataConfig.ABNORMAL_ONLY_MODE = !ChunkDataConfig.ABNORMAL_ONLY_MODE;
-			else if (v.equals("on")) ChunkDataConfig.ABNORMAL_ONLY_MODE = true;
-			else if (v.equals("off")) ChunkDataConfig.ABNORMAL_ONLY_MODE = false;
-
-			Text t = Text.literal("Green-only mode " + (ChunkDataConfig.ABNORMAL_ONLY_MODE ? "ON" : "OFF"));
-			if (ChunkDataConfig.ABNORMAL_ONLY_MODE) t = t.copy().formatted(Formatting.GREEN);
-			msg(t);
-			return;
-		}
-
-		msg("Unknown heatmap option. Try: /chunkdata heatmap on|off|toggle");
+		msg("Debug " + (ChunkDataDebugState.DEBUG_ENABLED ? "ON" : "OFF") + " (F9 toggles too)");
 	}
 
-	private static void here() {
-		var mc = MinecraftClient.getInstance();
-		if (mc.player == null) return;
-		ChunkPos pos = mc.player.getChunkPos();
-		long bytes = ChunkDataStore.get(ChunkPos.toLong(pos.x, pos.z));
-		msg("Chunk (" + pos.x + "," + pos.z + ") chunkDataBytes=" + ChunkDataStore.formatBytes(bytes) + "B");
-	}
-
-	private static void top(int count) {
-		var mc = MinecraftClient.getInstance();
-		ChunkPos center = (mc.player != null) ? mc.player.getChunkPos() : new ChunkPos(0, 0);
-
-		// Prefer area stats, but if no local samples yet, fall back to global stats
-		var areaStats = ChunkDataAnalyzer.statsForArea(center, ChunkDataConfig.HEATMAP_RADIUS);
-		var stats = (areaStats.samples() > 0) ? areaStats : ChunkDataAnalyzer.statsAll();
-
+	private static void top(int n) {
 		if (ChunkDataStore.size() == 0) {
-			msg("No tracked chunks yet. Move around / re-log so the server sends chunk data.");
+			msg("No tracked chunks yet. Turn on debug (F9) and re-log.");
 			return;
 		}
-
-		msg("Top " + count + " tracked chunks. " +
-			(stats.samples() >= 12 ? ("ABNORMAL = > mean + " + ChunkDataConfig.STD_MULT + "σ") : "ABNORMAL needs more samples") +
-			" (samples=" + stats.samples() + ", tracked=" + ChunkDataStore.size() + ")"
-		);
-
-		var rows = ChunkDataStore.top(count);
+		var rows = ChunkDataStore.top(Math.max(1, Math.min(50, n)));
+		msg("Top " + rows.size() + " chunks:");
 		for (int i = 0; i < rows.size(); i++) {
 			var r = rows.get(i);
-			int x = ChunkDataStore.packedX(r.pos());
-			int z = ChunkDataStore.packedZ(r.pos());
-			boolean abnormal = ChunkDataAnalyzer.isAbnormal(r.bytes(), stats);
-
-			Text line = Text.literal((i + 1) + ") (" + x + "," + z + ") = " +
-				ChunkDataStore.formatBytes(r.bytes()) + "B" + (abnormal ? "  [ABNORMAL]" : ""));
-
-			if (abnormal) line = line.copy().formatted(Formatting.GREEN);
-			msg(line);
+			msg((i+1) + ") pos=" + r.pos() + " bytes=" + ChunkDataStore.formatBytes(r.bytes()) + "B");
 		}
+	}
+
+	private static int parseInt(String[] p, int idx, int def) {
+		if (p.length <= idx) return def;
+		try { return Integer.parseInt(p[idx]); } catch (Exception e) { return def; }
 	}
 
 	private static void help() {
-		msg("Client-only commands:");
-		msg(" /chunkdata here");
-		msg(" /chunkdata top [count]");
-		msg(" /chunkdata heatmap on|off|toggle");
-		msg(" /chunkdata heatmap abnormalonly on|off|toggle");
-		msg(" /chunkdata clear");
-		msg("(Press H to toggle overlay.)");
+		msg("Commands: /chunkdata top [n] | /chunkdata clear | /chunkdata debug on|off|toggle|dump");
 	}
 
-	private static void msg(String s) { msg(Text.literal(s)); }
-
-	private static void msg(Text t) {
+	private static void msg(String s) {
 		var mc = MinecraftClient.getInstance();
-		if (mc.player != null) mc.player.sendMessage(t, false);
+		if (mc.player != null) mc.player.sendMessage(Text.literal(s), false);
 	}
 }

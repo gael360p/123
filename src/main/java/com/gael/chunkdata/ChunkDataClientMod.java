@@ -1,10 +1,7 @@
 package com.gael.chunkdata;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.text.Text;
 
@@ -13,45 +10,35 @@ public class ChunkDataClientMod implements ClientModInitializer {
 	public void onInitializeClient() {
 		ChunkDataKeys.init();
 
-		// Client command tree (works in SP / some servers, but not guaranteed everywhere)
-		ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
-			ChunkDataCommands.register(dispatcher)
-		);
-
-		// 1) Intercept real commands (no leading slash in the string)
-		ClientSendMessageEvents.ALLOW_COMMAND.register(command -> {
-			if (ChunkDataLocalCommandRouter.shouldHandleNoSlash(command)) {
-				ChunkDataLocalCommandRouter.handleNoSlash(command);
-				return false; // block sending to server
-			}
-			return true;
-		});
-
-		// 2) Intercept "/chunkdata ..." if it gets treated like chat on some servers
-		ClientSendMessageEvents.ALLOW_CHAT.register(message -> {
-			if (ChunkDataLocalCommandRouter.shouldHandleChatMessage(message)) {
-				ChunkDataLocalCommandRouter.handleChatMessage(message);
-				return false; // block sending to server
-			}
-			return true;
-		});
-
-		// Toggle heatmap with H (stays on until pressed again)
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			if (client.player == null) return;
-			while (ChunkDataKeys.SHOW_HEATMAP.wasPressed()) {
+
+			while (ChunkDataKeys.TOGGLE_HEATMAP.wasPressed()) {
 				ChunkDataConfig.HEATMAP_TOGGLED = !ChunkDataConfig.HEATMAP_TOGGLED;
-				client.player.sendMessage(
-					Text.literal("Heatmap " + (ChunkDataConfig.HEATMAP_TOGGLED ? "ON" : "OFF")),
-					false
-				);
+				client.player.sendMessage(Text.literal("Heatmap " + (ChunkDataConfig.HEATMAP_TOGGLED ? "ON" : "OFF")), false);
+			}
+
+			while (ChunkDataKeys.TOGGLE_DEBUG.wasPressed()) {
+				ChunkDataDebugState.DEBUG_ENABLED = !ChunkDataDebugState.DEBUG_ENABLED;
+				client.player.sendMessage(Text.literal("Debug " + (ChunkDataDebugState.DEBUG_ENABLED ? "ON" : "OFF")), false);
+			}
+
+			while (ChunkDataKeys.DUMP_DEBUG.wasPressed()) {
+				client.player.sendMessage(Text.literal("DEBUG dump: tracked=" + ChunkDataStore.size()
+					+ " ctor=" + ChunkDataDebugState.ctorPackets
+					+ " handler=" + ChunkDataDebugState.handlerPackets
+					+ " write=" + ChunkDataDebugState.measuredWritePackets
+					+ " lastHook=" + ChunkDataDebugState.lastHook
+					+ " lastBytes=" + ChunkDataStore.formatBytes(ChunkDataDebugState.lastBytes) + "B"), false);
+				if (!ChunkDataDebugState.lastError.isEmpty()) {
+					client.player.sendMessage(Text.literal("DEBUG error: " + ChunkDataDebugState.lastError), false);
+				}
 			}
 		});
 
-		HudRenderCallback.EVENT.register((drawContext, tickCounter) ->
-			ChunkHeatmapOverlay.render(drawContext)
-		);
-
-		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ChunkDataStore.clear());
+		HudRenderCallback.EVENT.register((drawContext, tickCounter) -> {
+			ChunkHeatmapOverlay.render(drawContext);
+			ChunkDebugOverlay.render(drawContext);
+		});
 	}
 }

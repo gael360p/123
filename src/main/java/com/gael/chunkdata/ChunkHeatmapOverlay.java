@@ -3,7 +3,6 @@ package com.gael.chunkdata;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.ChunkPos;
 
 public final class ChunkHeatmapOverlay {
 	private ChunkHeatmapOverlay() {}
@@ -15,109 +14,12 @@ public final class ChunkHeatmapOverlay {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		if (mc.player == null) return;
 
-		ChunkPos center = mc.player.getChunkPos();
-		int r = ChunkDataConfig.HEATMAP_RADIUS;
-		int cell = ChunkDataConfig.CELL_SIZE;
-		int margin = ChunkDataConfig.MARGIN;
-
-		int cells = (r * 2) + 1;
-		int gridWidth = cells * cell;
-		int gridHeight = cells * cell;
-
-		int headerH = 12;
-		int panelWidth = gridWidth;
-		int panelHeight = gridHeight + headerH;
-
-		// TOP-LEFT
-		int x0 = margin;
-		int y0 = margin;
-
-		int gridX0 = x0;
-		int gridY0 = y0 + headerH;
-
-		int panelAlpha = ChunkDataConfig.ABNORMAL_ONLY_MODE ? 0x18 : ChunkDataConfig.PANEL_ALPHA;
-
-		ctx.fill(x0 - 2, y0 - 2, x0 + panelWidth + 2, y0 + panelHeight + 2, argb(panelAlpha, 0, 0, 0));
-		ctx.drawBorder(x0 - 2, y0 - 2, panelWidth + 4, panelHeight + 4, argb(0x50, 255, 255, 255));
-
 		ctx.drawTextWithShadow(
 			mc.textRenderer,
-			Text.literal("tracked=" + ChunkDataStore.size() + "  H=toggle"),
-			x0 + 3,
-			y0 + 2,
+			Text.literal("ChunkData heatmap ON | tracked=" + ChunkDataStore.size() + " (H toggles)"),
+			8,
+			120,
 			0xFFFFFFFF
 		);
-
-		var stats = ChunkDataAnalyzer.statsForArea(center, r);
-
-		double minLog = Double.POSITIVE_INFINITY;
-		double maxLog = Double.NEGATIVE_INFINITY;
-
-		if (!ChunkDataConfig.ABNORMAL_ONLY_MODE) {
-			for (int dx = -r; dx <= r; dx++) {
-				for (int dz = -r; dz <= r; dz++) {
-					long b = ChunkDataStore.get(ChunkPos.toLong(center.x + dx, center.z + dz));
-					if (b < 0) continue;
-					double v = Math.log10(b + 1.0);
-					minLog = Math.min(minLog, v);
-					maxLog = Math.max(maxLog, v);
-				}
-			}
-			if (!Double.isFinite(minLog) || !Double.isFinite(maxLog) || minLog == maxLog) {
-				minLog = 0;
-				maxLog = 1;
-			}
-		}
-
-		for (int dz = -r; dz <= r; dz++) {
-			for (int dx = -r; dx <= r; dx++) {
-				int cx = center.x + dx;
-				int cz = center.z + dz;
-				long key = ChunkPos.toLong(cx, cz);
-				long bytes = ChunkDataStore.get(key);
-
-				boolean abnormal = ChunkDataAnalyzer.isAbnormal(bytes, stats);
-
-				int px = gridX0 + (dx + r) * cell;
-				int py = gridY0 + (dz + r) * cell;
-
-				if (bytes < 0) {
-					if (!ChunkDataConfig.ABNORMAL_ONLY_MODE) {
-						ctx.fill(px, py, px + cell, py + cell, argb(0x55, 35, 35, 35));
-						ctx.drawBorder(px, py, cell, cell, argb(0x20, 255, 255, 255));
-					}
-					continue;
-				}
-
-				if (abnormal) {
-					ctx.fill(px, py, px + cell, py + cell, argb(0x55, 0, 255, 0));
-					ctx.drawBorder(px, py, cell, cell, argb(0xFF, 0, 255, 0));
-					continue;
-				}
-
-				if (ChunkDataConfig.ABNORMAL_ONLY_MODE) continue;
-
-				double v = Math.log10(bytes + 1.0);
-				double t = (v - minLog) / (maxLog - minLog);
-				t = clamp01(t);
-
-				int gray = (int) (30 + t * 170);
-				ctx.fill(px, py, px + cell, py + cell, argb(0x35, gray, gray, gray));
-			}
-		}
-
-		int pcx = gridX0 + r * cell;
-		int pcy = gridY0 + r * cell;
-		ctx.drawBorder(pcx, pcy, cell, cell, argb(0xFF, 255, 255, 255));
-	}
-
-	private static int argb(int a, int r, int g, int b) {
-		return ((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
-	}
-
-	private static double clamp01(double x) {
-		if (x < 0) return 0;
-		if (x > 1) return 1;
-		return x;
 	}
 }
