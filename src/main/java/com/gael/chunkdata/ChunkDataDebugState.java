@@ -3,7 +3,11 @@ package com.gael.chunkdata;
 public final class ChunkDataDebugState {
     private ChunkDataDebugState() {}
 
-    public static volatile long ctorPackets = 0; // Add missing variables
+    public static volatile boolean DEBUG_ENABLED = false;
+    public static volatile long mixinPingTicks = 0;
+    public static volatile long onChunkDataCalls = 0;
+    public static volatile long measuredWriteCalls = 0;
+    public static volatile long ctorPackets = 0; 
     public static volatile long handlerPackets = 0;
     public static volatile long measuredWritePackets = 0;
     public static volatile int lastChunkX = 0;
@@ -23,7 +27,6 @@ public final class ChunkDataDebugState {
         lastError = t.getClass().getSimpleName() + ": " + (t.getMessage() != null ? t.getMessage() : "");
     }
 
-    // Add missing methods
     public static void recordPacket(int cx, int cz, long bytes) {
         ctorPackets++;
         record("PacketRecorded", cx, cz, bytes);
