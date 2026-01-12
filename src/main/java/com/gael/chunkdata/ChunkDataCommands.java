@@ -46,7 +46,6 @@ public final class ChunkDataCommands {
           ChunkDataConfig.HEATMAP_ENABLED = false;
           ChunkDataConfig.HEATMAP_TOGGLED = false;
           ctx.getSource().sendFeedback(Text.literal("Heatmap disabled.")); return 1;
-        return 1;
       }))
 
 
