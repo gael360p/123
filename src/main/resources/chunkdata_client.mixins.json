@@ -1,12 +1,9 @@
 {
-  "required": true,
+  "required": false,
   "package": "com.gael.chunkdata.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "ChunkDataS2CPacketWriteInvoker",
-    "ChunkDataS2CPacketCtorSizeMixin",
-    "ClientPlayNetworkHandlerChunkHookMixin",
-    "ClientPlayNetworkHandlerCommandInterceptMixin"
+    "MixinPingMinecraftClient"
   ],
   "injectors": {
     "defaultRequire": 1
