@@ -47,25 +47,6 @@ public final class ChunkDataCommands {
           ChunkDataConfig.HEATMAP_TOGGLED = false;
           ctx.getSource().sendFeedback(Text.lit
 
-set -e
-git checkout main
-git pull
-
-TS="$(date +%Y%m%d_%H%M%S)"
-for f in gradle.properties src/main/resources/chunkdata_client.mixins.json src/main/java/com/gael/chunkdata/mixin/MixinPingMinecraftClient.java src/main/java/com/gael/chunkdata/ChunkDataCommands.java; do
-  if [ -f "$f" ]; then
-  fi
-done
 
 
-{
-  "required": false,
-  "package": "com.gael.chunkdata.mixin",
-  "compatibilityLevel": "JAVA_21",
-  "client": [
-    "MixinPingMinecraftClient"
-  ],
-  "injectors": {
-    "defaultRequire": 1
-  }
-}
+
