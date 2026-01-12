@@ -19,7 +19,7 @@ public final class ChunkDataCommands {
           if (mc.player == null) return 0;
           ChunkPos pos = mc.player.getChunkPos();
           long bytes = ChunkDataStore.get(ChunkPos.toLong(pos.x, pos.z));
-          ctx.getSource().sendFeedback(Text.literaleral("Here: chunk(" + pos.x + "," + pos.z + ") bytes=" + ChunkDataStore.formatBytes(bytes) + "B"));
+          ctx.getSource().sendFeedback(Text.literal("Here: chunk(" + pos.x + "," + pos.z + ") bytes=" + ChunkDataStore.formatBytes(bytes) + "B"));
           return 1;
         })
       )
@@ -32,20 +32,20 @@ public final class ChunkDataCommands {
       .then(ClientCommandManager.literal("clear")
         .executes(ctx -> {
           ChunkDataStore.clear();
-          ctx.getSource().sendFeedback(Text.literaleral("Cleared tracked chunks."));
+          ctx.getSource().sendFeedback(Text.literal("Cleared tracked chunks."));
           return 1;
         })
       )
       .then(ClientCommandManager.literal("heatmap")
         .then(ClientCommandManager.literal("on").executes(ctx -> {
           ChunkDataConfig.HEATMAP_ENABLED = true;
-          ctx.getSource().sendFeedback(Text.literaleral("Heatmap enabled."));
+          ctx.getSource().sendFeedback(Text.literal("Heatmap enabled."));
           return 1;
         }))
         .then(ClientCommandManager.literal("off").executes(ctx -> {
           ChunkDataConfig.HEATMAP_ENABLED = false;
           ChunkDataConfig.HEATMAP_TOGGLED = false;
-          ctx.getSource().sendFeedback(Text.literal
+          ctx.getSource().sendFeedback(Text.literal("Heatmap disabled.");
 
 
 
