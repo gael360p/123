@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "com.gael.chunkdata.mixin.ChunkDataS2CPacketWriteInvoker",
+    "com.gael.chunkdata.mixin.ChunkDataS2CPacketCtorSizeMixin",
+    "com.gael.chunkdata.mixin.ClientPlayNetworkHandlerChunkHookMixin",
+    "com.gael.chunkdata.mixin.ClientPlayNetworkHandlerCommandInterceptMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
