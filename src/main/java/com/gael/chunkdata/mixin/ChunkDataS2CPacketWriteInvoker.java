@@ -7,6 +7,6 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(ChunkDataS2CPacket.class)
 public interface ChunkDataS2CPacketWriteInvoker {
-	@Invoker("write")
-	void chunkdata_client$write(RegistryByteBuf buf);
+  @Invoker("write")
+  void chunkdata_client$write(RegistryByteBuf buf);
 }

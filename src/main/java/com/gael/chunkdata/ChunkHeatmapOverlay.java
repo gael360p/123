@@ -5,21 +5,19 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
 
 public final class ChunkHeatmapOverlay {
-	private ChunkHeatmapOverlay() {}
+  private ChunkHeatmapOverlay() {}
 
-	public static void render(DrawContext ctx) {
-		if (!ChunkDataConfig.HEATMAP_ENABLED) return;
-		if (!ChunkDataConfig.HEATMAP_TOGGLED) return;
+  public static boolean HEATMAP_TOGGLED = false;
 
-		MinecraftClient mc = MinecraftClient.getInstance();
-		if (mc.player == null) return;
+  public static void render(DrawContext ctx) {
+    if (!HEATMAP_TOGGLED) return;
+    MinecraftClient mc = MinecraftClient.getInstance();
+    if (mc.player == null) return;
 
-		ctx.drawTextWithShadow(
-			mc.textRenderer,
-			Text.literal("ChunkData heatmap ON | tracked=" + ChunkDataStore.size() + " (H toggles)"),
-			8,
-			120,
-			0xFFFFFFFF
-		);
-	}
+    ctx.drawTextWithShadow(
+      mc.textRenderer,
+      Text.literal("Heatmap ON | tracked=" + ChunkDataStore.size()),
+      8, 110, 0xFFFFFFFF
+    );
+  }
 }
