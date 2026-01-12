@@ -10,6 +10,9 @@ public final class ChunkDataStore {
     private static final Long2LongOpenHashMap BYTES_BY_CHUNK = new Long2LongOpenHashMap();
 
     private ChunkDataStore() {}
+    
+    // Record to represent row with pos and bytes fields
+    public record Row(long pos, long bytes) {}
 
     public static void put(long chunkPos, long bytes) {
         BYTES_BY_CHUNK.put(chunkPos, bytes);
@@ -27,10 +30,11 @@ public final class ChunkDataStore {
         BYTES_BY_CHUNK.clear();
     }
 
-    public static List<Long> top(int count) {
-        return BYTES_BY_CHUNK.values()
+    public static List<Row> top(int count) {
+        return BYTES_BY_CHUNK.long2LongEntrySet()
                              .stream()
-                             .sorted(Comparator.reverseOrder())
+                             .map(entry -> new Row(entry.getLongKey(), entry.getLongValue()))
+                             .sorted(Comparator.comparingLong(Row::bytes).reversed())
                              .limit(count)
                              .collect(Collectors.toList());
     }
@@ -44,6 +48,6 @@ public final class ChunkDataStore {
     }
 
     public static void forEachBytes(java.util.function.Consumer<Long> action) {
-        BYTES_BY_CHUNK.long2LongEntrySet().forEach(entry -> action.accept(entry.getLongValue()));
+        BYTES_BY_CHUNK.values().forEach(action);
     }
 }

@@ -23,6 +23,10 @@ public final class ChunkDataDebugState {
         lastBytes = bytes;
     }
 
+    public static void record(int cx, int cz, long bytes) {
+        record("UnknownHook", cx, cz, bytes);
+    }
+
     public static void error(Throwable t) {
         lastError = t.getClass().getSimpleName() + ": " + (t.getMessage() != null ? t.getMessage() : "");
     }
