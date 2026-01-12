@@ -51,26 +51,13 @@ set -e
 git checkout main
 git pull
 
-mkdir -p backup
 TS="$(date +%Y%m%d_%H%M%S)"
 for f in gradle.properties src/main/resources/chunkdata_client.mixins.json src/main/java/com/gael/chunkdata/mixin/MixinPingMinecraftClient.java src/main/java/com/gael/chunkdata/ChunkDataCommands.java; do
   if [ -f "$f" ]; then
-    mkdir -p "backup/$(dirname "$f")"
-    cp "$f" "backup/$f.$TS.bak"
   fi
 done
 
-# 1) Match your installed Fabric API version (you have 0.118.0+1.21.4)
-# This prevents weird mismatches when you build.
-if grep -q "^fabric_version=" gradle.properties; then
-  sed -i 's/^fabric_version=.*/fabric_version=0.118.0+1.21.4/' gradle.properties
-else
-  echo "fabric_version=0.118.0+1.21.4" >> gradle.properties
-fi
 
-# 2) Make mixins OPTIONAL and ONLY load the safe "ping" mixin.
-# This prevents crashes if any tracking mixin is broken.
-cat > src/main/resources/chunkdata_client.mixins.json <<'EOF'
 {
   "required": false,
   "package": "com.gael.chunkdata.mixin",
