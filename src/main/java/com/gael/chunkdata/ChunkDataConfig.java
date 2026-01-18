@@ -6,4 +6,5 @@ public final class ChunkDataConfig {
   public static boolean HEATMAP_ENABLED = true;
   public static boolean HEATMAP_TOGGLED = false; // H toggles this
   public static boolean ABNORMAL_ONLY = false;   // optional mode, can be used later
+  public static final double STD_MULT = 1.5;     // standard deviation multiplier for anomaly detection
 }
