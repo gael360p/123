@@ -7,6 +7,7 @@ import net.minecraft.text.Text;
 
 public class ChunkDataClientMod implements ClientModInitializer {
   @Override
+  @SuppressWarnings("deprecation")
   public void onInitializeClient() {
     ChunkDataKeys.init();
 
@@ -44,7 +45,6 @@ public class ChunkDataClientMod implements ClientModInitializer {
       }
     });
 
-    //noinspection deprecation
     HudRenderCallback.EVENT.register((drawContext, tickCounter) -> {
       ChunkHeatmapOverlay.render(drawContext);
       ChunkDebugOverlay.render(drawContext);
