@@ -1,34 +1,34 @@
 package com.gael.chunkdata;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.text.Text;
 
 public class ChunkDataClientMod implements ClientModInitializer {
   @Override
+  @SuppressWarnings("deprecation")
   public void onInitializeClient() {
     ChunkDataKeys.init();
 
-    // ✅ This is what makes /chunkdata commands exist
-    ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
-      ChunkDataCommands.register(dispatcher)
-    );
-
-    // Keys
     ClientTickEvents.END_CLIENT_TICK.register(client -> {
       if (client.player == null) return;
 
       while (ChunkDataKeys.TOGGLE_HEATMAP.wasPressed()) {
         if (!ChunkDataConfig.HEATMAP_ENABLED) ChunkDataConfig.HEATMAP_ENABLED = true;
         ChunkDataConfig.HEATMAP_TOGGLED = !ChunkDataConfig.HEATMAP_TOGGLED;
-        client.player.sendMessage(Text.literal("Heatmap " + (ChunkDataConfig.HEATMAP_TOGGLED ? "ON" : "OFF")), false);
+        client.player.sendMessage(
+          Text.literal("Heatmap " + (ChunkDataConfig.HEATMAP_TOGGLED ? "ON" : "OFF")),
+          false
+        );
       }
 
       while (ChunkDataKeys.TOGGLE_DEBUG.wasPressed()) {
         ChunkDataDebugState.DEBUG_ENABLED = !ChunkDataDebugState.DEBUG_ENABLED;
-        client.player.sendMessage(Text.literal("Debug " + (ChunkDataDebugState.DEBUG_ENABLED ? "ON" : "OFF")), false);
+        client.player.sendMessage(
+          Text.literal("Debug " + (ChunkDataDebugState.DEBUG_ENABLED ? "ON" : "OFF")),
+          false
+        );
       }
 
       while (ChunkDataKeys.DUMP_DEBUG.wasPressed()) {
@@ -39,6 +39,9 @@ public class ChunkDataClientMod implements ClientModInitializer {
           " write=" + ChunkDataDebugState.measuredWriteCalls +
           " lastBytes=" + ChunkDataStore.formatBytes(ChunkDataDebugState.lastBytes) + "B"
         ), false);
+        if (!ChunkDataDebugState.lastError.isEmpty()) {
+          client.player.sendMessage(Text.literal("DEBUG error: " + ChunkDataDebugState.lastError), false);
+        }
       }
     });
 
