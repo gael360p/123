@@ -1,6 +1,5 @@
 package com.gael.chunkdata;
 
-import it.unimi.dsi.fastutil.longs.Long2LongMap;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import java.util.Comparator;
 import java.util.List;
@@ -48,6 +47,8 @@ public final class ChunkDataStore {
     }
 
     public static void forEachBytes(java.util.function.Consumer<Long> action) {
-        BYTES_BY_CHUNK.values().forEach(action);
+        for (long value : BYTES_BY_CHUNK.values()) {
+            action.accept(value);
+        }
     }
 }
