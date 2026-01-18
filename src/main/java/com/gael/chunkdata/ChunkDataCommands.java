@@ -48,6 +48,7 @@ public final class ChunkDataCommands {
           ctx.getSource().sendFeedback(Text.literal("Heatmap disabled.")); return 1;
       }));
     }
+    }
 }
 
 
