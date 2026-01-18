@@ -44,6 +44,7 @@ public class ChunkDataClientMod implements ClientModInitializer {
       }
     });
 
+    //noinspection deprecation
     HudRenderCallback.EVENT.register((drawContext, tickCounter) -> {
       ChunkHeatmapOverlay.render(drawContext);
       ChunkDebugOverlay.render(drawContext);
