@@ -56,3 +56,4 @@ public final class ChunkDataCommands {
     }
     return 1;
   }
+}
